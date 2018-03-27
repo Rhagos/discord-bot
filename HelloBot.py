@@ -14,6 +14,7 @@ def on_ready():
 
 valid-commands = ['checkperm', 'wipe', 'logout', 'nuke', 'oppress', 'oyvey']
 
+
 @client.event
 @asyncio.coroutine
 def on_message(message):
