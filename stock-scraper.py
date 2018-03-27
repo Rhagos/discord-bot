@@ -7,6 +7,7 @@ from random import randint
 import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 def parse_page(ticker):
     """
@@ -38,8 +39,6 @@ def parse_page(ticker):
   #              raise ValueError("Invalid response from Webserver")
 
             print("Parsing {0}".format(url))
-            with open('wtfnasdaq{0}.txt'.format(ticker), 'w') as dump:
-                dump.write(response.content.decode('utf-8'))
             parser = html.fromstring(response.text)
 """
             options = webdriver.ChromeOptions()
@@ -52,7 +51,11 @@ def parse_page(ticker):
             print("DRIVER ONLINE")
             driver.get(url)
             print("URL GOTTEN")
+            WebDriverWait(driver, 10)
+            print(driver.current_url)
 
+            with open('wtfnasdaq{0}.txt'.format(ticker), 'w') as dump:
+                dump.write(driver.page_source)
 
 
             #DIV TAGS
@@ -72,11 +75,11 @@ def parse_page(ticker):
  #           raw_open_date = parser.xpath(xpath_open_date)
  #           raw_close_price = parser.xpath(xpath_close_price)
  #           raw_close_date = parser.xpath(xpath_close_date)
-            raw_name = driver.find_element(By.XPath, xpath_head)
-            raw_open_price = driver.find_element(By.XPath, xpath_open_price)
-            raw_open_date = driver.find_element(By.XPath, xpath_open_date)
-            raw_close_price = driver.find_element(By.XPath, xpath_close_price)
-            raw_close_date = driver.find_element(By.XPath, xpath_close_date)
+            raw_name = driver.find_element(By.XPATH,xpath_head)
+            raw_open_price = driver.find_element(By.XPATH,xpath_open_price)
+            raw_open_date = driver.find_element(By.XPATH,xpath_open_date)
+            raw_close_price = driver.find_element(By.XPATH,xpath_close_price)
+            raw_close_date = driver.find_element(By.XPATH,xpath_close_date)
 
             name = raw_name[0].replace("Common Stock Quote & Summary Data","").strip() if raw_name else ""
             op_price = raw_open_price[0].strip() if raw_open_price else None
