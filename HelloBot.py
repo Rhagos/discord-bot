@@ -3,6 +3,9 @@ __author__ = 'Domath'
 import discord
 import asyncio
 import time
+
+import stock-scraper
+
 client = discord.Client()
 
 @client.event
@@ -12,7 +15,7 @@ def on_ready():
     print('Username: ' + client.user.name)
     print('ID: ' + client.user.id)
 
-valid-commands = ['checkperm', 'wipe', 'logout', 'nuke', 'oppress', 'oyvey']
+valid_commands = ['checkperm', 'wipe', 'logout', 'nuke', 'oppress', 'oyvey']
 
 
 @client.event
@@ -60,7 +63,17 @@ def on_message(message):
             if keywords[1:] == []:
                 yield from client.send_message(message.channel, "SHOO SHOO")
             else:
-                #ADD SCRAPING STOCK DATA HERE
+                for ticker in keywords[1:]:
+                    try:
+                        data = stock-scraper.parse_page(ticker)
+                        breakdown = "{0} is at {1}, up {2} ({3}) from previously.".format(data[company_name], data[price], data[change], data[change_percent])
+
+                        yield from client.send_message(message.channel, breakdown)
+                    except Exception e:
+                        yieldD from client.send_message(message.channel, "The fuck? {0}".format(e))
+
+        if keywords[0] == '-help':
+            yield from client.send_message(message.channel, "Valid commands: {0}".format(valid_commands))
 
 
 
