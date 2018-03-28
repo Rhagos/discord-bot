@@ -33,7 +33,7 @@ def parse_page(ticker):
     }
     for tries in range(2):
         try:
-            url = "https://www.nasdaq.com/symbol/".format(ticker)
+            url = "https://www.nasdaq.com/symbol/{0}".format(ticker)
             response = requests.get(url, headers = headers)
 
             print("Parsing {0}".format(url))
@@ -51,10 +51,9 @@ def parse_page(ticker):
             xpath_change_dn_per = "//*[@id='qwidget_percent'][@class='qwidget-percent qwidget-Red']/text()"
             raw_name = parser.xpath(xpath_head)
             raw_price = parser.xpath(xpath_price)
-            raw_change = parser.xpath(xpath_change)
 
-            #raw_change_val = parser.xpath(xpath_change_up_val) if parser.xpath(xpath_change_up_val) != [] else parser.xpath(xpath_change_dn_val)
-            #raw_change_per = parser.xpath(xpath_change_up_per) if parser.xpath(xpath_change_up_per) != [] else parser.xpath(xpath_change_dn_per)
+            raw_change_val = parser.xpath(xpath_change_up_val) if parser.xpath(xpath_change_up_val) != [] else parser.xpath(xpath_change_dn_val)
+            raw_change_per = parser.xpath(xpath_change_up_per) if parser.xpath(xpath_change_up_per) != [] else parser.xpath(xpath_change_dn_per)
 
             if sel:
                 name = raw_name.replace("Common Stock ({0}) Quote & Summary Data".format(ticker),"").strip() if raw_name else ""
@@ -65,10 +64,10 @@ def parse_page(ticker):
                 name = raw_name[0].replace("Common Stock ({0}) Quote & Summary Data".format(ticker),"").strip() if raw_name else ""
                 price = raw_price[0].strip() if raw_price else None
 
-                #change_val = raw_change_val[0].strip() if raw_change_val else None
-                #change_per = raw_change_per[0].strip() if raw_change_per else None
-            #change_val = '-'+change_val if raw_change_val == parser.xpath(xpath_change_dn_val) else change_val
-            #change_per = '-'+change_per if raw_change_per == parser.xpath(xpath_change_dn_per) else change_per
+                change_val = raw_change_val[0].strip() if raw_change_val else None
+                change_per = raw_change_per[0].strip() if raw_change_per else None
+            change_val = '-'+change_val if raw_change_val == parser.xpath(xpath_change_dn_val) else change_val
+            change_per = '-'+change_per if raw_change_per == parser.xpath(xpath_change_dn_per) else change_per
  #           op_price = raw_open_price.strip() if raw_open_price else None
  #           op_date = raw_open_date.strip() if raw_open_date else None
  #           cl_price = raw_close_price.strip() if raw_close_price else None
@@ -147,13 +146,13 @@ def webdriver_scraper(ticker):
                 "change_percent":change_per
             }
         driver.quit()
-        return nasdaq_dataa
+        return nasdaq_data
     except Exception as e:
         print("Failed {0}".format(e))
 
 def main():
     symbol = sys.argv[1]
-    print(webdriver_scraper(symbol))
+    print(parse_page(symbol))
 
 
 if __name__ == "__main__":
