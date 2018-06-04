@@ -97,4 +97,5 @@ def on_message(message):
 
 
 
-client.run('MjYwNjM4MTUwNTIxNTIwMTMx.CzpRtQ.i-Hw9RJ7DFBzD0ABZDqbihzkNjs')
+key = open("key.txt", "r").readline()
+client.run(key)
