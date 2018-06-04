@@ -97,5 +97,6 @@ def on_message(message):
 
 
 
-key = open("key.txt", "r").readline()
-client.run(key)
+key = open("key.scrt", "r").readline()
+key = key.strip('\n')
+client.run(key, bot = True)
