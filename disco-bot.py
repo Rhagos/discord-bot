@@ -3,7 +3,7 @@ __author__ = 'Domath'
 import discord
 import asyncio
 import time
-
+import datetime
 import stock_scraper
 
 client = discord.Client()
@@ -13,69 +13,66 @@ client = discord.Client()
 def on_ready():
     print('Hi there!')
     print('Username: ' + client.user.name)
-    print('ID: ' + client.user.id)
+    print('ID: ' + str(client.user.id))
 
-valid_commands = ['checkperm', 'wipe', 'logout', 'nuke', 'oppress', 'oyvey']
+valid_commands = ['checkperm', 'hello', 'logout', 'nuke', 'clean', 'no', 'oyvey', 'stocks', 'dronestrike']
 
-
+ENABLE_LOGS = False
 @client.event
-@asyncio.coroutine
-def on_message(message):
+async def on_message(message):
     keywords = message.content.split(" ")
-    if keywords == []:
+    if keywords == [] or keywords == None:
         return
-    if keywords[0][1:] not in valid_commands and keywords[0][0] == '-':
-        client.send_message("Not a valid command, try -help")
+    if keywords[0][0] == '-' and keywords[0][1:] not in valid_commands:
+        await message.channel.send("Not a valid command, try -help")
+    #if not message.author.permissions_in(message.channel).administrator:
+    #    await message.channel.send("Wrong door leather man")
     message_permissions = message.author.permissions_in(message.channel).manage_messages
     if message.content.startswith('-'):
         if message.content.startswith('-checkperm'):
-            yield from client.send_message(message.channel, 'Can edit/delete other messages: {0}'.format(message.author.permissions_in(message.channel).manage_messages))
+            await message.channel.send('Can edit/delete other messages: {0}'.format(message.author.permissions_in(message.channel).manage_messages))
 
-        if message.content.startswith('-wipe'):
-            yield from client.send_message(message.channel, 'HELLO WORLD')
+        if message.content.startswith('-hello'):
+            await message.channel.send('hello')
 
         if message.content.startswith('-logout'):
-            if message.author.permissions_in(message.channel).manage_server:
-                yield from client.send_message(message.channel, 'Powering down...')
-                yield from client.logout()
+            if message.author.permissions_in(message.channel).administrator:
+                await message.channel.send('Powering down...')
+                await client.logout()
 
-        if message.content.startswith('-nuke'):
+        if message.content.startswith('-nuke') or message.content.startswith('-dronestrike'):
+            if message_permissions:
+                if len(keywords) > 1:
+                    deleted = await message.channel.purge(limit = min(int(keywords[1]) + 1, 100), check = lambda a: True)
+                    if ENABLE_LOGS:
+                        with open("Log_nuke_"+str(message.channel)+"_"+str(datetime.datetime.now()), 'w+') as log:
+                            for line in deleted:
+                                log.write(line.content+"\n")
+                    
+                else:
+                    await message.channel.send('Format is: -clean [number of messages to delete]')
+            else:
+                await message.channel.send('Does not have proper permissions!')
+
+        if message.content.startswith('-clean'):
             if message_permissions:
                 if len(keywords) > 1:
                     not_pinned = lambda x: x.pinned != True
-                    deleted = yield from client.purge_from(message.channel, limit = int(keywords[1]) + 1, check = not_pinned)
+                    deleted = await message.channel.purge(limit = min(int(keywords[1]) + 1, 100), check = not_pinned)
+                    if ENABLE_LOGS:
+                        with open("Log_clean_"+str(message.channel)+"_"+str(datetime.datetime.now()), 'w+') as log:
+                            for line in deleted:
+                                log.write(line.content+"\n")
+                    
                 else:
-                    yield from client.send_message(message.channel,'Format is: !nuke [number of messages to delete]')
+                    await message.channel.send('Format is: -nuke [number of messages to delete]')
             else:
-                yield from client.send_message(message.channel, 'Does not have proper permissions!')
+                    await message.channel.send('Does not have proper permissions!')
 
-        if message.content.startswith('-dronestrike'):
-            if message_permissions:
-                if len(keywords) > 1:
-                    not_pinned = lambda x: x.pinned != True
-                    deleted = yield from client.purge_from(message.channel, limit = int(keywords[1]) + 1, check = not_pinned)
-                else:
-                    yield from client.send_message(message.channel,'Format is: !nuke [number of messages to delete]')
-            else:
-                yield from client.send_message(message.channel, 'Does not have proper permissions!')
 
-        if message.content.startswith('-oppress'):
-            if message_permissions:
-                keywords = message.content.split(" ")
-                if len(keywords) > 1:
-                    messages = yield from client.logs_from(message.channel, int(keywords[1]) + 1)
-                    for txt in messages:
-                        if not message.pinned:
-                            yield from client.delete_message(txt)
-                else:
-                    yield from client.send_message(message.channel,'Format is: !nuke [number of messages to delete]')
-            else:
-                yield from client.send_message(message.channel, 'Does not have proper permissions!')
-            yield from client.send_message(message.channel, '<:LUL:280188355453648900> Free speech <:LUL:280188355453648900> ')
-
-        if keywords[0] == '-oyvey':
+        if keywords[0] == '-oyvey' or keywords[0] == '-stocks':
             if keywords[1:] == []:
-                yield from client.send_message(message.channel, "SHOO SHOO")
+                await client.send_message(message.channel, "SHOO SHOO")
             else:
                 for ticker in keywords[1:]:
                     try:
@@ -88,12 +85,29 @@ def on_message(message):
                                 data.get('change'),
                                 data.get('change_percent'))
 
-                        yield from client.send_message(message.channel, breakdown)
+                        await message.channel.send(breakdown)
                     except Exception as e:
-                        yield from client.send_message(message.channel, "The fuck? {0}".format(e))
+                        await message.channel.send("The fuck? {0}".format(e))
 
         if keywords[0] == '-help':
-            yield from client.send_message(message.channel, "Valid commands: {0}".format(valid_commands))
+            await message.channel.send("Valid commands: {0}".format(valid_commands))
+
+        if keywords[0] == '-no':
+            if message_permissions:
+                not_pinned = lambda x: x.pinned != True
+                history = await message.channel.history().flatten()
+                if ENABLE_LOGS:
+                    with open("Log_no_"+str(message.channel)+"_"+str(datetime.datetime.now()), 'w+') as log:
+                        for no in history:
+                            await no.delete()
+                            log.write(no.content+"\n")
+                else:
+                    for no in history:
+                        await no.delete()
+            else:
+                await message.channel.send('Does not have proper permissions!')
+
+
 
 
 
