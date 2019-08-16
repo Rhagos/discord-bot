@@ -72,7 +72,7 @@ async def on_message(message):
 
         if keywords[0] == '-oyvey' or keywords[0] == '-stocks':
             if keywords[1:] == []:
-                await client.send_message(message.channel, "SHOO SHOO")
+                await client.send_message(message.channel, "Format is '-stocks <TICKER>'")
             else:
                 for ticker in keywords[1:]:
                     try:

@@ -12,8 +12,38 @@ from selenium.webdriver.support import expected_conditions
 
 
 sel = False
+
+def parse_yahoo(ticker):
+    """
+    Parses Yahoo by retrieving a json output and parsing data out of that.
+    """
+    url = 'https://query1.finance.yahoo.com/v8/finance/chart/{}?region=US&lang=en-US&includePrePost=false&interval=2m&range=1d&corsDomain=finance.yahoo.com&.tsrc=finance'.format(ticker)
+    for tries in range(2):
+        try:
+            response = requests.put(url, headers={'Content-type':'application/json'}, data='')
+            parse = html.fromstring(requests.get('https://finance.yahoo.com/quote/{0}?p={0}'.format(ticker), headers={'Content-type':'application/json'}).text)
+            xpath_title="/html/head/title/text()"
+            company_name = parse.xpath(xpath_title)[0][:-35]
+
+            output = json.loads(response.text)
+            current_price = output['chart']['result'][0]['meta']['regularMarketPrice']
+            last_price = output['chart']['result'][0]['meta']['previousClose']
+
+            change = round(current_price - last_price,3)
+            change_per = str(round(change/last_price,3)*100) + "%"
+            stock_data = {
+                'company_name':company_name,
+                'price':current_price,
+                'change':change,
+                'change_percent':change_per
+            }
+            return stock_data
+        except Exception as e:
+            print("Error retrieving stocks, {0}".format(e))
+
 def parse_page(ticker):
     """
+    Parses NASDAQ by retrieving the http response and then parsing through it with xpath to scrape out the data.
     Args:
         ticker (str): stock symbol
     Returns:
@@ -152,7 +182,9 @@ def webdriver_scraper(ticker):
 
 def main():
     symbol = sys.argv[1]
-    print(parse_page(symbol))
+    print(parse_yahoo(symbol))
+    #print(parse_page(symbol))
+    #print(webdriver_scraper(symbol))
 
 
 if __name__ == "__main__":
